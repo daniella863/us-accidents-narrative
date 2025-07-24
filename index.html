@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>US Accidents Narrative Visualization</title>
+
+  <!-- Load D3.js (latest v7) -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <!-- Load d3-annotation for scene callouts -->
+  <script src="https://unpkg.com/d3-annotation@2.5.1/d3-annotation.min.js"></script>
+
+  <!-- Your stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Header and Navigation -->
+  <header>
+    <h1>US Accidents (2018–2022)</h1>
+    <p class="subtitle">An Interactive Narrative Visualization</p>
+    <nav>
+      <button id="scene1-btn">Scene 1: Hourly Patterns</button>
+      <button id="scene2-btn">Scene 2: Severity by State</button>
+      <button id="scene3-btn">Scene 3: Weather Impact</button>
+      <button id="explore-btn">Explore the Data</button>
+    </nav>
+  </header>
+
+  <!-- Main visualization container -->
+  <main>
+    <div id="vis-container">
+      <!-- SVG will be injected by D3 -->
+    </div>
+  </main>
+
+  <!-- Your script -->
+  <script src="script.js"></script>
+</body>
+</html>
