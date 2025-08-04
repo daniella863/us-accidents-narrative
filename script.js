@@ -5,6 +5,7 @@ const sceneIndicator = d3.select("#scene-indicator");
 const container = d3.select("#scene-container");
 let accidentData;
 let usGeo;
+document.getElementById("loading-spinner").style.display = "flex";
 
 // Load the filtered data
 Promise.all([
@@ -28,12 +29,21 @@ Promise.all([
   });
 }).catch(error => {
   console.error("Error loading data:", error);
+}).finally(() => {
+  // Hide spinner after everything is done
+  document.getElementById("loading-spinner").style.display = "none";
 });
 
 function updateScene() {
+  document.getElementById("loading-spinner").style.display = "flex";
+  setTimeout(() => {
+
   container.html("");
   sceneIndicator.text(`Scene ${currentScene + 1} of ${scenes.length}`);
   scenes[currentScene]();
+  // Hide after rendering
+  document.getElementById("loading-spinner").style.display = "none";
+  }, 10); 
 }
 
 function sceneMap() {
@@ -106,7 +116,7 @@ function sceneHourly() {
         x: x(peakHour) + x.bandwidth() / 2,
         y: y(hourCounts[peakHour]),
         dx: -30,
-        dy: 40   // was -50 before — makes label appear below the bar
+        dy: 80   // was -50 before — makes label appear below the bar
     }
     ];
 
