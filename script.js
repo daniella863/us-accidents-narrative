@@ -9,9 +9,11 @@ Promise.all([
   d3.csv("data/accidents_filtered.csv"),
   d3.json("data/us-states.json")
 ]).then(([data, us]) => {
+  console.log("WINDOW DATA ", window)
   window.accidentData = data;
   window.usGeo = us;
 
+  console.log("window.accidentData ", window.accidentData)
   updateScene();
 
   d3.select("#next-btn").on("click", () => {
