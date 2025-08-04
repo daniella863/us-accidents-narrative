@@ -6,10 +6,10 @@ const container = d3.select("#scene-container");
 let accidentData;
 let usGeo;
 
-d3.csv("data/accidents_filtered.csv", function(data) {
+d3.csv("accidents_filtered.csv", function(data) {
     console.log("csv data", data);
 });
-d3.json("data/us-states.json", function(data) {
+d3.json("us-states.json", function(data) {
     console.log("json data", data);
 });
 
