@@ -26,11 +26,13 @@ const container = d3.select("#scene-container");
 //     updateScene();
 //   });
 // });
-d3.csv("data/accidents_cleaned.csv").then(data => {
+d3.csv("data/accidents_filtered.csv").then(data => {
   d3.json("data/us-states.json").then(us => {
     // Parse and clean data here if needed
+    // window.accidentData = data;
+    // window.usMapData = us;
     window.accidentData = data;
-    window.usMapData = us;
+    window.usGeo = us;
     updateScene();
 
     d3.select("#next-btn").on("click", () => {
