@@ -15,8 +15,8 @@ d3.json("us-states.json", function(data) {
 
 // Load the filtered data
 Promise.all([
-  d3.csv("data/accidents_filtered.csv"),
-  d3.json("data/us-states.json")
+  d3.csv("accidents_filtered.csv"),
+  d3.json("us-states.json")
 ]).then(([data, us]) => {
   console.log("WINDOW DATA ", window)
   accidentData = data;
