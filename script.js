@@ -6,6 +6,13 @@ const container = d3.select("#scene-container");
 let accidentData;
 let usGeo;
 
+d3.csv("data/accidents_filtered.csv", function(data) {
+    console.log("data/us-states.json", data);
+});
+d3.json("/data/users.json", function(data) {
+    console.log("json data", data);
+});
+
 // Load the filtered data
 Promise.all([
   d3.csv("data/accidents_filtered.csv"),
