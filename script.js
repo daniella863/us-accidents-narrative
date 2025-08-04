@@ -27,6 +27,8 @@ Promise.all([
     if (currentScene > 0) currentScene--;
     updateScene();
   });
+}).catch(error => {
+  console.error("Error loading data:", error);
 });
 
 function updateScene() {
