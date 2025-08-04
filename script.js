@@ -1,146 +1,229 @@
-// script.js
-const width = 900;
-const height = 600;
+// script.js — Interactive Slideshow Narrative with Free Exploration
+
 let currentScene = 0;
-let data;
+const scenes = [sceneMap, sceneHourly, sceneTemperature, enableExplore];
 
-const svg = d3.select("#vis")
-  .append("svg")
-  .attr("width", width)
-  .attr("height", height);
+const sceneIndicator = d3.select("#scene-indicator");
+const container = d3.select("#scene-container");
 
-// Load CSV and initialize
-d3.csv("data/accidents_filtered.csv").then(raw => {
-  data = raw.map(d => ({
-    ...d,
-    year: new Date(d.Start_Time).getFullYear(),
-    lat: +d.Start_Lat,
-    lng: +d.Start_Lng,
-    temp: +d["Temperature(F)"],
-    state: d.State,
-    city: d.City
-  }));
-  showScene(currentScene);
+// Load the filtered data
+Promise.all([
+  d3.csv("data/accidents_filtered.csv"),
+  d3.json("data/us-states.json")
+]).then(([data, us]) => {
+  window.accidentData = data;
+  window.usGeo = us;
+
+  updateScene();
+
+  d3.select("#next-btn").on("click", () => {
+    if (currentScene < scenes.length - 1) currentScene++;
+    updateScene();
+  });
+
+  d3.select("#prev-btn").on("click", () => {
+    if (currentScene > 0) currentScene--;
+    updateScene();
+  });
 });
 
-// Scene handler
-function showScene(n) {
-  svg.selectAll("*").remove(); // clear canvas
-
-  if (n === 0) return drawStateTotals();
-  if (n === 1) return drawTrend();
-  if (n === 2) return drawMap();
+function updateScene() {
+  container.html("");
+  sceneIndicator.text(`Scene ${currentScene + 1} of ${scenes.length}`);
+  scenes[currentScene]();
 }
 
-function drawStateTotals() {
-  svg.append("text")
-    .attr("x", 100)
-    .attr("y", 100)
-    .text(`Loaded ${data.length} accidents`)
-    .attr("font-size", "24px")
-    .attr("fill", "black");
-}
-
-// Scene 1 – Totals per state
-// function drawStateTotals() {
-//   const counts = d3.rollup(data, v => v.length, d => d.state);
-//   const states = Array.from(counts, ([state, count]) => ({ state, count }));
-
-//   const x = d3.scaleBand()
-//     .domain(states.map(d => d.state))
-//     .range([50, width - 50])
-//     .padding(0.1);
-
-//   const y = d3.scaleLinear()
-//     .domain([0, d3.max(states, d => d.count)])
-//     .range([height - 50, 50]);
-
-//   svg.selectAll("rect")
-//     .data(states)
-//     .enter()
-//     .append("rect")
-//     .attr("x", d => x(d.state))
-//     .attr("y", d => y(d.count))
-//     .attr("width", x.bandwidth())
-//     .attr("height", d => height - 50 - y(d.count))
-//     .attr("fill", "#007bff");
-
-//   svg.append("g")
-//     .attr("transform", `translate(0,${height - 50})`)
-//     .call(d3.axisBottom(x).tickFormat(d => d));
-
-//   svg.append("g")
-//     .attr("transform", "translate(50,0)")
-//     .call(d3.axisLeft(y));
-// }
-
-// Scene 2 – Yearly trend
-function drawTrend() {
-  const years = d3.rollup(data, v => v.length, d => d.year);
-  const trend = Array.from(years, ([year, count]) => ({ year: +year, count }));
-
-  const x = d3.scaleLinear()
-    .domain(d3.extent(trend, d => d.year))
-    .range([50, width - 50]);
-
-  const y = d3.scaleLinear()
-    .domain([0, d3.max(trend, d => d.count)])
-    .range([height - 50, 50]);
-
-  const line = d3.line()
-    .x(d => x(d.year))
-    .y(d => y(d.count));
-
-  svg.append("path")
-    .datum(trend)
-    .attr("fill", "none")
-    .attr("stroke", "#28a745")
-    .attr("stroke-width", 3)
-    .attr("d", line);
-
-  svg.append("g")
-    .attr("transform", `translate(0,${height - 50})`)
-    .call(d3.axisBottom(x).tickFormat(d3.format("d")));
-
-  svg.append("g")
-    .attr("transform", "translate(50,0)")
-    .call(d3.axisLeft(y));
-}
-
-// Scene 3 – Lat/Lng scatterplot
-function drawMap() {
-  const projection = d3.geoAlbersUsa().translate([width / 2, height / 2]).scale(1000);
+function sceneMap() {
+  const svg = container.append("svg").attr("width", 800).attr("height", 500);
+  const projection = d3.geoAlbersUsa().scale(1000).translate([400, 250]);
   const path = d3.geoPath().projection(projection);
 
-  d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json").then(us => {
-    svg.append("g")
-      .selectAll("path")
-      .data(topojson.feature(us, us.objects.states).features)
-      .enter()
-      .append("path")
-      .attr("d", path)
-      .attr("fill", "#f2f2f2")
-      .attr("stroke", "#999");
+  const states = topojson.feature(usGeo, usGeo.objects.states).features;
+  svg.selectAll("path")
+    .data(states)
+    .join("path")
+    .attr("d", path)
+    .attr("fill", d => {
+      const stateName = getStateName(d.id);
+      return ["Texas", "New Mexico", "Arizona", "Nevada", "California", "Utah", "Oklahoma"].includes(stateName) ? "#ffc107" : "#eee";
+    })
+    .attr("stroke", "#333");
 
-    svg.selectAll("circle")
-      .data(data.slice(0, 5000))
-      .enter()
-      .append("circle")
-      .attr("cx", d => projection([d.lng, d.lat])[0])
-      .attr("cy", d => projection([d.lng, d.lat])[1])
-      .attr("r", 1.5)
-      .attr("fill", "red")
-      .attr("opacity", 0.3);
-  });
+  svg.selectAll("circle")
+    .data(accidentData)
+    .join("circle")
+    .attr("cx", d => projection([+d.Start_Lng, +d.Start_Lat])[0])
+    .attr("cy", d => projection([+d.Start_Lng, +d.Start_Lat])[1])
+    .attr("r", 1.5)
+    .attr("fill", "rgba(255, 0, 0, 0.3)");
 }
 
-// Scene navigation buttons
-d3.select("#next").on("click", () => {
-  currentScene = (currentScene + 1) % 3;
-  showScene(currentScene);
-});
+function sceneHourly() {
+  const svg = container.append("svg").attr("width", 800).attr("height", 400);
+  const hours = Array.from({ length: 24 }, (_, i) => i);
+  const hourCounts = Array(24).fill(0);
+  accidentData.forEach(d => {
+    const hour = new Date(d.Start_Time).getHours();
+    hourCounts[hour]++;
+  });
 
-d3.select("#prev").on("click", () => {
-  currentScene = (currentScene + 2) % 3;
-  showScene(currentScene);
-});
+  const x = d3.scaleBand().domain(hours).range([50, 750]).padding(0.1);
+  const y = d3.scaleLinear().domain([0, d3.max(hourCounts)]).nice().range([350, 50]);
+
+  svg.append("g").attr("transform", "translate(0,350)").call(d3.axisBottom(x));
+  svg.append("g").attr("transform", "translate(50,0)").call(d3.axisLeft(y));
+
+  svg.selectAll("rect")
+    .data(hours)
+    .join("rect")
+    .attr("x", d => x(d))
+    .attr("y", d => y(hourCounts[d]))
+    .attr("width", x.bandwidth())
+    .attr("height", d => 350 - y(hourCounts[d]))
+    .attr("fill", "steelblue");
+
+  svg.append("text")
+    .attr("x", 400)
+    .attr("y", 30)
+    .attr("text-anchor", "middle")
+    .style("font-size", "18px")
+    .text("Accidents by Hour of Day");
+}
+
+function sceneTemperature() {
+  const svg = container.append("svg").attr("width", 800).attr("height", 400);
+  const bins = d3.bin().thresholds(20).value(d => +d["Temperature(F)"])(accidentData);
+  const x = d3.scaleLinear().domain(d3.extent(accidentData, d => +d["Temperature(F)"])).nice().range([50, 750]);
+  const y = d3.scaleLinear().domain([0, d3.max(bins, d => d.length)]).nice().range([350, 50]);
+
+  svg.append("g").attr("transform", "translate(0,350)").call(d3.axisBottom(x));
+  svg.append("g").attr("transform", "translate(50,0)").call(d3.axisLeft(y));
+
+  svg.selectAll("rect")
+    .data(bins)
+    .join("rect")
+    .attr("x", d => x(d.x0))
+    .attr("y", d => y(d.length))
+    .attr("width", d => x(d.x1) - x(d.x0) - 1)
+    .attr("height", d => 350 - y(d.length))
+    .attr("fill", "#28a745");
+
+  svg.append("text")
+    .attr("x", 400)
+    .attr("y", 30)
+    .attr("text-anchor", "middle")
+    .style("font-size", "18px")
+    .text("Accident Frequency by Temperature");
+}
+
+// function showScene4() {
+//   document.getElementById("explore-controls").style.display = "block";
+//   const container = d3.select("#scene-container").html("");
+//   const stateSelect = d3.select("#stateSelect");
+//   const states = Array.from(new Set(accidentData.map(d => d.State))).sort();
+//   container.append("h2").text("Top Cities with Most Accidents");
+
+//   const dropdown = d3.select("#stateDropdown");
+//   const southwestStates = Array.from(new Set(data.map(d => d.State)));
+//   dropdown.selectAll("option").data(southwestStates).join("option")
+//     .attr("value", d => d).text(d => d);
+
+//   dropdown.on("change", function() {
+//     const selectedState = this.value;
+//     updateCityChart(selectedState);
+//   });
+
+//   updateCityChart(southwestStates[0]);
+// }
+
+// function updateCityChart(state) {
+//   const container = d3.select("#scene-container");
+//   container.selectAll("svg").remove();
+
+//   const stateData = data.filter(d => d.State === state && d.City);
+//   const cityCounts = d3.rollup(stateData, v => v.length, d => d.City);
+//   const topCities = Array.from(cityCounts, ([city, count]) => ({ city, count }))
+//     .sort((a, b) => b.count - a.count)
+//     .slice(0, 10);
+
+//   const svg = container.append("svg").attr("width", 600).attr("height", 400);
+
+//   const x = d3.scaleBand().domain(topCities.map(d => d.city)).range([50, 550]).padding(0.1);
+//   const y = d3.scaleLinear().domain([0, d3.max(topCities, d => d.count)]).range([350, 50]);
+
+//   svg.append("g").attr("transform", "translate(0,350)").call(d3.axisBottom(x)).selectAll("text")
+//     .attr("transform", "rotate(-40)")
+//     .style("text-anchor", "end");
+//   svg.append("g").attr("transform", "translate(50,0)").call(d3.axisLeft(y));
+
+//   svg.selectAll("rect")
+//     .data(topCities)
+//     .enter()
+//     .append("rect")
+//     .attr("x", d => x(d.city))
+//     .attr("y", d => y(d.count))
+//     .attr("width", x.bandwidth())
+//     .attr("height", d => 350 - y(d.count))
+//     .attr("fill", "#2ecc71");
+// }
+function enableExplore() {
+  document.getElementById("explore-controls").style.display = "block";
+  const stateSelect = d3.select("#stateSelect");
+  const states = Array.from(new Set(accidentData.map(d => d.State))).sort();
+
+  stateSelect.selectAll("option")
+    .data(states)
+    .join("option")
+    .text(d => d);
+
+  stateSelect.on("change", function () {
+    const selected = this.value;
+    drawStateExploration(selected);
+  });
+
+  drawStateExploration(states[0]);
+}
+
+function drawStateExploration(state) {
+  let width = 800
+  let height = 500
+  d3.select("#scene-container").html("");
+  const svg = d3.select("#scene-container").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+  const filtered = accidentData.filter(d => d.State === state);
+  const hourly = Array(24).fill(0);
+  filtered.forEach(d => {
+    const hour = +d.Start_Time.split(" ")[1].split(":")[0];
+    if (!isNaN(hour)) hourly[hour]++;
+  });
+
+  const x = d3.scaleBand().domain(d3.range(24)).range([100, width - 100]).padding(0.1);
+  const y = d3.scaleLinear().domain([0, d3.max(hourly)]).range([height - 100, 100]);
+
+  svg.selectAll("rect")
+    .data(hourly)
+    .join("rect")
+    .attr("x", (d, i) => x(i))
+    .attr("y", d => y(d))
+    .attr("width", x.bandwidth())
+    .attr("height", d => height - 100 - y(d))
+    .attr("fill", "#f97316");
+
+  svg.append("text")
+    .attr("x", 50)
+    .attr("y", 40)
+    .attr("font-size", "18px")
+    .attr("font-weight", "bold")
+    .text(`Hourly Accidents in ${state}`);
+}
+
+function getStateName(fips) {
+  const stateNames = {
+    "04": "Arizona", "06": "California", "35": "New Mexico",
+    "40": "Oklahoma", "48": "Texas", "49": "Utah", "32": "Nevada"
+  };
+  const padded = fips.toString().padStart(2, "0");
+  return stateNames[padded] || "Other";
+}

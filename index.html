@@ -1,11 +1,30 @@
-<body>
-  <h1>USA Accidents: A Decade in Review</h1>
-  <div id="vis"></div>
-  <div style="text-align: center;">
-    <button id="prev">Previous</button>
-    <button id="next">Next</button>
-  </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Southwest Accidents Narrative</title>
+  <link rel="stylesheet" href="style.css" />
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="https://unpkg.com/topojson-client@3"></script>
+  <script src="libs/d3-annotation.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Accidents in the U.S. Southwest (2018–2021)</h1>
+  </header>
+
+  <div id="scene-container"></div>
+  <div id="explore-controls" style="display: none;">
+      <label for="stateSelect">Explore by State:</label>
+      <select id="stateSelect"></select>
+    </div>
+  <div id="controls">
+    <button id="prev-btn">Previous</button>
+    <span id="scene-indicator"></span>
+    <button id="next-btn">Next</button>
+  </div>
   <script src="script.js"></script>
 </body>
+</html>
+
