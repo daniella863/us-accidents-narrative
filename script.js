@@ -1,30 +1,29 @@
-// script.js — Interactive Slideshow Narrative with Free Exploration
-
 let currentScene = 0;
-const scenes = [sceneMap, sceneHourly, sceneTemperature, enableExplore];
+const scenes = [sceneHourly, sceneHourly, sceneTemperature, enableExplore];
 
 const sceneIndicator = d3.select("#scene-indicator");
 const container = d3.select("#scene-container");
 
-d3.csv("data/accidents_filtered.csv").then(data => {
-  d3.json("data/us-states.json").then(us => {
-    // Parse and clean data here if needed
-    window.accidentData = data;
-    window.usGeo = us;
-    updateScene();
+// Load the filtered data
+Promise.all([
+  d3.csv("data/accidents_filtered.csv"),
+  d3.json("data/us-states.json")
+]).then(([data, us]) => {
+  window.accidentData = data;
+  window.usGeo = us;
 
-    d3.select("#next-btn").on("click", () => {
+  updateScene();
+
+  d3.select("#next-btn").on("click", () => {
     if (currentScene < scenes.length - 1) currentScene++;
-        updateScene();
-    });
-    d3.select("#prev-btn").on("click", () => {
-        if (currentScene > 0) currentScene--;
-        updateScene();
-    });
+    updateScene();
+  });
 
+  d3.select("#prev-btn").on("click", () => {
+    if (currentScene > 0) currentScene--;
+    updateScene();
   });
 });
-
 
 function updateScene() {
   container.html("");
@@ -49,7 +48,7 @@ function sceneMap() {
     .attr("stroke", "#333");
 
   svg.selectAll("circle")
-    .data(window.accidentData)
+    .data(accidentData)
     .join("circle")
     .attr("cx", d => projection([+d.Start_Lng, +d.Start_Lat])[0])
     .attr("cy", d => projection([+d.Start_Lng, +d.Start_Lat])[1])
@@ -202,4 +201,3 @@ function getStateName(fips) {
   const padded = fips.toString().padStart(2, "0");
   return stateNames[padded] || "Other";
 }
-
