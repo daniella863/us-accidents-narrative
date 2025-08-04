@@ -34,3 +34,12 @@ svg {
   text-align: center;
   margin-top: 2em;
 }
+
+.annotation-group .annotation-note-title {
+  font-weight: bold;
+  fill: #111;
+}
+.annotation-group .annotation-note-label {
+  font-size: 12px;
+  fill: #444;
+}

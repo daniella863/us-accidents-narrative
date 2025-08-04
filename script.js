@@ -88,6 +88,32 @@ function sceneHourly() {
     .attr("text-anchor", "middle")
     .style("font-size", "18px")
     .text("Accidents by Hour of Day");
+
+    // Add annotations to highlight peak hour
+    const peakHour = hourCounts.indexOf(d3.max(hourCounts));
+
+    const annotations = [
+    {
+        note: {
+        title: "Rush Hour Spike",
+        label: `Highest number of accidents at ${peakHour}:00`,
+        align: "middle",
+        padding: 10
+        },
+        x: x(peakHour) + x.bandwidth() / 2,
+        y: y(hourCounts[peakHour]),
+        dx: -30,
+        dy: 40   // was -50 before — makes label appear below the bar
+    }
+    ];
+
+    const makeAnnotations = d3.annotation()
+    .type(d3.annotationLabel)
+    .annotations(annotations);
+
+    svg.append("g")
+    .attr("class", "annotation-group")
+    .call(makeAnnotations);
 }
 
 function sceneTemperature() {
@@ -116,56 +142,6 @@ function sceneTemperature() {
     .text("Accident Frequency by Temperature");
 }
 
-// function showScene4() {
-//   document.getElementById("explore-controls").style.display = "block";
-//   const container = d3.select("#scene-container").html("");
-//   const stateSelect = d3.select("#stateSelect");
-//   const states = Array.from(new Set(accidentData.map(d => d.State))).sort();
-//   container.append("h2").text("Top Cities with Most Accidents");
-
-//   const dropdown = d3.select("#stateDropdown");
-//   const southwestStates = Array.from(new Set(data.map(d => d.State)));
-//   dropdown.selectAll("option").data(southwestStates).join("option")
-//     .attr("value", d => d).text(d => d);
-
-//   dropdown.on("change", function() {
-//     const selectedState = this.value;
-//     updateCityChart(selectedState);
-//   });
-
-//   updateCityChart(southwestStates[0]);
-// }
-
-// function updateCityChart(state) {
-//   const container = d3.select("#scene-container");
-//   container.selectAll("svg").remove();
-
-//   const stateData = data.filter(d => d.State === state && d.City);
-//   const cityCounts = d3.rollup(stateData, v => v.length, d => d.City);
-//   const topCities = Array.from(cityCounts, ([city, count]) => ({ city, count }))
-//     .sort((a, b) => b.count - a.count)
-//     .slice(0, 10);
-
-//   const svg = container.append("svg").attr("width", 600).attr("height", 400);
-
-//   const x = d3.scaleBand().domain(topCities.map(d => d.city)).range([50, 550]).padding(0.1);
-//   const y = d3.scaleLinear().domain([0, d3.max(topCities, d => d.count)]).range([350, 50]);
-
-//   svg.append("g").attr("transform", "translate(0,350)").call(d3.axisBottom(x)).selectAll("text")
-//     .attr("transform", "rotate(-40)")
-//     .style("text-anchor", "end");
-//   svg.append("g").attr("transform", "translate(50,0)").call(d3.axisLeft(y));
-
-//   svg.selectAll("rect")
-//     .data(topCities)
-//     .enter()
-//     .append("rect")
-//     .attr("x", d => x(d.city))
-//     .attr("y", d => y(d.count))
-//     .attr("width", x.bandwidth())
-//     .attr("height", d => 350 - y(d.count))
-//     .attr("fill", "#2ecc71");
-// }
 function enableExplore() {
   document.getElementById("explore-controls").style.display = "block";
   const stateSelect = d3.select("#stateSelect");
@@ -227,3 +203,4 @@ function getStateName(fips) {
   const padded = fips.toString().padStart(2, "0");
   return stateNames[padded] || "Other";
 }
+
