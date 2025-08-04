@@ -1,8 +1,10 @@
 let currentScene = 0;
-const scenes = [sceneHourly, sceneHourly, sceneTemperature, enableExplore];
+const scenes = [sceneMap, sceneHourly, sceneTemperature, enableExplore];
 
 const sceneIndicator = d3.select("#scene-indicator");
 const container = d3.select("#scene-container");
+let accidentData;
+let usGeo;
 
 // Load the filtered data
 Promise.all([
@@ -10,10 +12,10 @@ Promise.all([
   d3.json("data/us-states.json")
 ]).then(([data, us]) => {
   console.log("WINDOW DATA ", window)
-  window.accidentData = data;
-  window.usGeo = us;
+  accidentData = data;
+  usGeo = us;
 
-  console.log("window.accidentData ", window.accidentData)
+  console.log("accidentData ", accidentData)
   updateScene();
 
   d3.select("#next-btn").on("click", () => {
