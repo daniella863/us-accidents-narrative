@@ -21,6 +21,6 @@ df = df[df['Start_Time'].str[:4].isin(['2018', '2019', '2020', '2021', '2022', '
 df['Temperature(F)'] = df['Temperature(F)'].round(-1) 
 
 # Save cleaned and filtered dataset
-df.to_csv("data/accidents_filtered.csv", index=False)
+df.to_csv("accidents_filtered.csv", index=False)
 
 print("Cleaned and filtered dataset saved as 'accidents_southwest_2018.csv'")
