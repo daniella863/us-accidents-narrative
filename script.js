@@ -115,8 +115,8 @@ function sceneHourly() {
         },
         x: x(peakHour) + x.bandwidth() / 2,
         y: y(hourCounts[peakHour]),
-        dx: -30,
-        dy: 80   // was -50 before — makes label appear below the bar
+        dx: 30,
+        dy: 40   // was -50 before — makes label appear below the bar
     }
     ];
 
