@@ -6,7 +6,7 @@ const container = d3.select("#scene-container");
 let accidentData;
 let usGeo;
 
-d3.csv("accidents_filtered.csv", function(data) {
+d3.csv("https://drive.google.com/file/d/1kqL8jsolWk04SD7zRRoIX-6myCCqD8Kx/view?usp=drive_link", function(data) {
     console.log("csv data", data);
 });
 d3.json("us-states.json", function(data) {
@@ -15,7 +15,7 @@ d3.json("us-states.json", function(data) {
 
 // Load the filtered data
 Promise.all([
-  d3.csv("accidents_filtered.csv"),
+  d3.csv("https://media.githubusercontent.com/media/daniella863/us-accidents-narrative/refs/heads/main/accidents_filtered.csv?raw=true"),
   d3.json("us-states.json")
 ]).then(([data, us]) => {
   console.log("WINDOW DATA ", window)
