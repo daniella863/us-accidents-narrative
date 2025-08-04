@@ -7,25 +7,44 @@ const sceneIndicator = d3.select("#scene-indicator");
 const container = d3.select("#scene-container");
 
 // Load the filtered data
-Promise.all([
-  d3.csv("data/accidents_filtered.csv"),
-  d3.json("data/us-states.json")
-]).then(([data, us]) => {
-  window.accidentData = data;
-  window.usGeo = us;
+// Promise.all([
+//   d3.csv("data/accidents_filtered.csv"),
+//   d3.json("data/us-states.json")
+// ]).then(([data, us]) => {
+//   window.accidentData = data;
+//   window.usGeo = us;
 
-  updateScene();
+//   updateScene();
 
-  d3.select("#next-btn").on("click", () => {
+//   d3.select("#next-btn").on("click", () => {
+//     if (currentScene < scenes.length - 1) currentScene++;
+//     updateScene();
+//   });
+
+//   d3.select("#prev-btn").on("click", () => {
+//     if (currentScene > 0) currentScene--;
+//     updateScene();
+//   });
+// });
+d3.csv("data/accidents_cleaned.csv").then(data => {
+  d3.json("data/us-states.json").then(us => {
+    // Parse and clean data here if needed
+    window.accidentData = data;
+    window.usMapData = us;
+    updateScene();
+
+    d3.select("#next-btn").on("click", () => {
     if (currentScene < scenes.length - 1) currentScene++;
-    updateScene();
-  });
+        updateScene();
+    });
+    d3.select("#prev-btn").on("click", () => {
+        if (currentScene > 0) currentScene--;
+        updateScene();
+    });
 
-  d3.select("#prev-btn").on("click", () => {
-    if (currentScene > 0) currentScene--;
-    updateScene();
   });
 });
+
 
 function updateScene() {
   container.html("");
