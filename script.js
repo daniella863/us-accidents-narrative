@@ -6,31 +6,9 @@ const scenes = [sceneMap, sceneHourly, sceneTemperature, enableExplore];
 const sceneIndicator = d3.select("#scene-indicator");
 const container = d3.select("#scene-container");
 
-// Load the filtered data
-// Promise.all([
-//   d3.csv("data/accidents_filtered.csv"),
-//   d3.json("data/us-states.json")
-// ]).then(([data, us]) => {
-//   window.accidentData = data;
-//   window.usGeo = us;
-
-//   updateScene();
-
-//   d3.select("#next-btn").on("click", () => {
-//     if (currentScene < scenes.length - 1) currentScene++;
-//     updateScene();
-//   });
-
-//   d3.select("#prev-btn").on("click", () => {
-//     if (currentScene > 0) currentScene--;
-//     updateScene();
-//   });
-// });
 d3.csv("data/accidents_filtered.csv").then(data => {
   d3.json("data/us-states.json").then(us => {
     // Parse and clean data here if needed
-    // window.accidentData = data;
-    // window.usMapData = us;
     window.accidentData = data;
     window.usGeo = us;
     updateScene();
@@ -71,7 +49,7 @@ function sceneMap() {
     .attr("stroke", "#333");
 
   svg.selectAll("circle")
-    .data(accidentData)
+    .data(window.accidentData)
     .join("circle")
     .attr("cx", d => projection([+d.Start_Lng, +d.Start_Lat])[0])
     .attr("cy", d => projection([+d.Start_Lng, +d.Start_Lat])[1])
