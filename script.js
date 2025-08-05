@@ -3,7 +3,7 @@ const scenes = [sceneMap, sceneHourly, sceneTemperature, enableExplore];
 
 const sceneIndicator = d3.select("#scene-indicator");
 const container = d3.select("#scene-container");
-let accidentData = [];
+let accidentData;
 let usGeo;
 document.getElementById("loading-spinner").style.display = "flex";
 
