@@ -7,6 +7,17 @@ let accidentData;
 let usGeo;
 document.getElementById("loading-spinner").style.display = "flex";
 
+const stateNameMap = {
+  AZ: "Arizona",
+  NM: "New Mexico",
+  TX: "Texas",
+  OK: "Oklahoma",
+  CO: "Colorado",
+  UT: "Utah",
+  NV: "Nevada",
+  CA: "California"
+};
+
 // Load the filtered data
 Promise.all([
   //since lfs wasn't letting me access, I am using the direct raw link from github storage
@@ -115,8 +126,8 @@ function sceneHourly() {
         },
         x: x(peakHour) + x.bandwidth() / 2,
         y: y(hourCounts[peakHour]),
-        dx: 30,
-        dy: 40   // was -50 before — makes label appear below the bar
+        dx: 70,
+        dy: -5   // was -50 before — makes label appear below the bar
     }
     ];
 
@@ -181,31 +192,82 @@ function drawStateExploration(state) {
     .attr("width", width)
     .attr("height", height);
 
-  const filtered = accidentData.filter(d => d.State === state);
-  const hourly = Array(24).fill(0);
-  filtered.forEach(d => {
-    const hour = +d.Start_Time.split(" ")[1].split(":")[0];
-    if (!isNaN(hour)) hourly[hour]++;
-  });
+//   const filtered = accidentData.filter(d => d.State === state);
+//   const hourly = Array(24).fill(0);
+//   filtered.forEach(d => {
+//     const hour = +d.Start_Time.split(" ")[1].split(":")[0];
+//     if (!isNaN(hour)) hourly[hour]++;
+//   });
 
-  const x = d3.scaleBand().domain(d3.range(24)).range([100, width - 100]).padding(0.1);
-  const y = d3.scaleLinear().domain([0, d3.max(hourly)]).range([height - 100, 100]);
+  const filtered = accidentData.filter(d => d.State === state && d.City);
+  const cityCounts = d3.rollup(filtered, v => v.length, d => d.City);
+  const topCities = Array.from(cityCounts, ([city, count]) => ({ city, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
 
-  svg.selectAll("rect")
-    .data(hourly)
+  const margin = { top: 60, right: 40, bottom: 100, left: 60 };
+  const chartWidth = width - margin.left - margin.right;
+  const chartHeight = height - margin.top - margin.bottom;
+
+  const x = d3.scaleBand().domain(topCities.map(d => d.city)).range([0, chartWidth]).padding(0.1);
+  const y = d3.scaleLinear().domain([0, d3.max(topCities, d => d.count)]).nice().range([chartHeight, 0]);
+
+
+//   const x = d3.scaleBand().domain(d3.range(24)).range([100, width - 100]).padding(0.1);
+//   const y = d3.scaleLinear().domain([0, d3.max(hourly)]).range([height - 100, 100]);
+
+  const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+  g.append("g")
+    .attr("transform", `translate(0,${chartHeight})`)
+    .call(d3.axisBottom(x))
+    .selectAll("text")
+    .attr("transform", "rotate(-40)")
+    .style("text-anchor", "end");
+
+  g.append("g")
+    .call(d3.axisLeft(y))
+    .append("text")
+    .attr("x", -margin.left)
+    .attr("y", -20)
+    .attr("fill", "black")
+    .attr("text-anchor", "start")
+    .text("Accident Count");
+
+  g.selectAll("rect")
+    .data(topCities)
     .join("rect")
-    .attr("x", (d, i) => x(i))
-    .attr("y", d => y(d))
+    .attr("x", d => x(d.city))
+    .attr("y", d => y(d.count))
     .attr("width", x.bandwidth())
-    .attr("height", d => height - 100 - y(d))
+    .attr("height", d => chartHeight - y(d.count))
     .attr("fill", "#f97316");
 
   svg.append("text")
-    .attr("x", 50)
-    .attr("y", 40)
+    .attr("x", width / 2)
+    .attr("y", 30)
+    .attr("text-anchor", "middle")
     .attr("font-size", "18px")
     .attr("font-weight", "bold")
-    .text(`Hourly Accidents in ${state}`);
+    .text(`Top 10 Cities by Accidents in ${stateNameMap[state]}`);
+
+  const topCity = topCities[0];
+  const annotations = [
+    {
+      note: {
+        title: "Top City",
+        label: `${topCity.city} has the most accidents in ${state}`,
+        align: "middle"
+      },
+      x: margin.left + x(topCity.city) + x.bandwidth() / 2,
+      y: margin.top + y(topCity.count),
+      dx: 80,
+      dy: -5
+    }
+  ];
+
+  const makeAnnotations = d3.annotation().type(d3.annotationLabel).annotations(annotations);
+  svg.append("g").attr("class", "annotation-group").call(makeAnnotations);
 }
 
 function getStateName(fips) {

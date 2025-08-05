@@ -10,6 +10,7 @@ header, footer {
   padding: 1em;
   background: #1e293b;
   color: white;
+  padding-top: 80px; 
 }
 
 h1 {
