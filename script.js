@@ -170,7 +170,7 @@ function enableExplore() {
   document.getElementById("explore-controls").style.display = "block";
   const stateSelect = d3.select("#stateSelect");
   const states = Array.from(new Set(accidentData.map(d => d.State))).sort();
-
+  
   stateSelect.selectAll("option")
     .data(states)
     .join("option")
@@ -192,13 +192,6 @@ function drawStateExploration(state) {
     .attr("width", width)
     .attr("height", height);
 
-//   const filtered = accidentData.filter(d => d.State === state);
-//   const hourly = Array(24).fill(0);
-//   filtered.forEach(d => {
-//     const hour = +d.Start_Time.split(" ")[1].split(":")[0];
-//     if (!isNaN(hour)) hourly[hour]++;
-//   });
-
   const filtered = accidentData.filter(d => d.State === state && d.City);
   const cityCounts = d3.rollup(filtered, v => v.length, d => d.City);
   const topCities = Array.from(cityCounts, ([city, count]) => ({ city, count }))
@@ -211,10 +204,6 @@ function drawStateExploration(state) {
 
   const x = d3.scaleBand().domain(topCities.map(d => d.city)).range([0, chartWidth]).padding(0.1);
   const y = d3.scaleLinear().domain([0, d3.max(topCities, d => d.count)]).nice().range([chartHeight, 0]);
-
-
-//   const x = d3.scaleBand().domain(d3.range(24)).range([100, width - 100]).padding(0.1);
-//   const y = d3.scaleLinear().domain([0, d3.max(hourly)]).range([height - 100, 100]);
 
   const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
