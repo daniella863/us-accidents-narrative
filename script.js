@@ -3,7 +3,7 @@ const scenes = [sceneMap, sceneHourly, sceneTemperature, enableExplore];
 
 const sceneIndicator = d3.select("#scene-indicator");
 const container = d3.select("#scene-container");
-let accidentData;
+let accidentData = [];
 let usGeo;
 document.getElementById("loading-spinner").style.display = "flex";
 
@@ -21,8 +21,9 @@ const stateNameMap = {
 // Load the filtered data
 Promise.all([
   //since lfs wasn't letting me access, I am using the direct raw link from github storage
-  d3.csv("https://media.githubusercontent.com/media/daniella863/us-accidents-narrative/refs/heads/main/accidents_filtered.csv?raw=true"),
-  d3.json("us-states.json")
+//   d3.csv("https://media.githubusercontent.com/media/daniella863/us-accidents-narrative/refs/heads/main/accidents_filtered.csv?raw=true"),
+   d3.json("accidents_filtered.json"),
+   d3.json("us-states.json")
 ]).then(([data, us]) => {
   accidentData = data;
   usGeo = us;
