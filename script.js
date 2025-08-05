@@ -22,7 +22,6 @@ const stateNameMap = {
 Promise.all([
   //since lfs wasn't letting me access, I am using the direct raw link from github storage
    d3.csv("https://media.githubusercontent.com/media/daniella863/us-accidents-narrative/refs/heads/main/accidents_filtered.csv?raw=true"),
-   //d3.json("https://github.com/daniella863/us-accidents-narrative/blob/main/accidents_filtered.json?raw=true"),
    d3.json("us-states.json")
 ]).then(([data, us]) => {
   accidentData = data;
