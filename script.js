@@ -45,15 +45,29 @@ Promise.all([
   document.getElementById("loading-spinner").style.display = "none";
 });
 
+// function updateScene() {
+//   document.getElementById("loading-spinner").style.display = "flex";
+//   setTimeout(() => {
+
+//   container.html("");
+//   sceneIndicator.text(`Scene ${currentScene + 1} of ${scenes.length}`);
+//   scenes[currentScene]();
+//   // Hide after rendering
+//   document.getElementById("loading-spinner").style.display = "none";
+//   }, 10); 
+// }
+
 function updateScene() {
   document.getElementById("loading-spinner").style.display = "flex";
   setTimeout(() => {
+    // Clear scene and hide dropdown by default
+    container.html("");
+    document.getElementById("explore-controls").style.display = "none"; // 👈 Hide dropdown by default
 
-  container.html("");
-  sceneIndicator.text(`Scene ${currentScene + 1} of ${scenes.length}`);
-  scenes[currentScene]();
-  // Hide after rendering
-  document.getElementById("loading-spinner").style.display = "none";
+    sceneIndicator.text(`Scene ${currentScene + 1} of ${scenes.length}`);
+    scenes[currentScene]();
+
+    document.getElementById("loading-spinner").style.display = "none";
   }, 10); 
 }
 
@@ -129,6 +143,19 @@ function sceneHourly() {
 
   const x = d3.scaleBand().domain(hours).range([50, 750]).padding(0.1);
   const y = d3.scaleLinear().domain([0, d3.max(hourCounts)]).nice().range([350, 50]);
+
+  // X Axis
+  svg.append("g")
+    .attr("transform", "translate(0,350)")
+    .call(d3.axisBottom(x));
+
+  // X Axis Label
+  svg.append("text")
+    .attr("x", 400)
+    .attr("y", 385)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "12px")
+    .text("Hour of Day (24-hour format)");
 
   svg.append("g").attr("transform", "translate(0,350)").call(d3.axisBottom(x));
   svg.append("g").attr("transform", "translate(50,0)").call(d3.axisLeft(y));
