@@ -61,6 +61,18 @@ function sceneMap() {
   const svg = container.append("svg").attr("width", 800).attr("height", 500);
   const projection = d3.geoAlbersUsa().scale(1000).translate([400, 250]);
   const path = d3.geoPath().projection(projection);
+  const txCenter = projection([-99.9018, 31.9686]);
+
+  //const states = topojson.feature(usGeo, usGeo.objects.states).features;
+  
+  // Add title
+  svg.append("text")
+    .attr("x", 400)
+    .attr("y", 30)
+    .attr("text-anchor", "middle")
+    .style("font-size", "18px")
+    .style("font-weight", "bold")
+    .text("Accident Locations in the Southwest U.S.");
 
   const states = topojson.feature(usGeo, usGeo.objects.states).features;
   svg.selectAll("path")
@@ -69,7 +81,7 @@ function sceneMap() {
     .attr("d", path)
     .attr("fill", d => {
       const stateName = getStateName(d.id);
-      return ["Texas", "New Mexico", "Arizona", "Nevada", "California", "Utah", "Oklahoma"].includes(stateName) ? "#ffc107" : "#eee";
+      return ["Texas", "New Mexico", "Arizona", "Nevada", "California", "Utah", "Oklahoma", "Colorado"].includes(stateName) ? "#ffc107" : "#eee";
     })
     .attr("stroke", "#333");
 
@@ -80,6 +92,30 @@ function sceneMap() {
     .attr("cy", d => projection([+d.Start_Lng, +d.Start_Lat])[1])
     .attr("r", 1.5)
     .attr("fill", "rgba(255, 0, 0, 0.3)");
+
+  // Add annotation for Texas cluster
+  const annotation = [
+    {
+      note: {
+        title: "High Volume in Texas",
+        label: "Texas has a noticeably dense cluster of accidents.",
+        align: "middle",
+        padding: 10
+      },
+      x: txCenter[0],  // Adjust as needed to land over the Texas cluster
+      y: txCenter[1],
+      dx: 80,
+      dy: -20
+    }
+  ];
+
+  const makeAnnotation = d3.annotation()
+    .type(d3.annotationLabel)
+    .annotations(annotation);
+
+  svg.append("g")
+    .attr("class", "annotation-group")
+    .call(makeAnnotation);
 }
 
 function sceneHourly() {
@@ -141,14 +177,50 @@ function sceneHourly() {
 }
 
 function sceneTemperature() {
-  const svg = container.append("svg").attr("width", 800).attr("height", 400);
-  const bins = d3.bin().thresholds(20).value(d => +d["Temperature(F)"])(accidentData);
-  const x = d3.scaleLinear().domain(d3.extent(accidentData, d => +d["Temperature(F)"])).nice().range([50, 750]);
-  const y = d3.scaleLinear().domain([0, d3.max(bins, d => d.length)]).nice().range([350, 50]);
+  const svg = container.append("svg").attr("width", 1000).attr("height", 400);
 
-  svg.append("g").attr("transform", "translate(0,350)").call(d3.axisBottom(x));
-  svg.append("g").attr("transform", "translate(50,0)").call(d3.axisLeft(y));
+  const bins = d3.bin()
+    .thresholds(20)
+    .value(d => +d["Temperature(F)"])(accidentData);
 
+  const x = d3.scaleLinear()
+    .domain(d3.extent(accidentData, d => +d["Temperature(F)"]))
+    .nice()
+    .range([50, 750]);
+
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(bins, d => d.length)])
+    .nice()
+    .range([350, 50]);
+
+  // X Axis
+  svg.append("g")
+    .attr("transform", "translate(0,350)")
+    .call(d3.axisBottom(x));
+
+  // Y Axis
+  svg.append("g")
+    .attr("transform", "translate(50,0)")
+    .call(d3.axisLeft(y));
+
+  // X Axis Label
+  svg.append("text")
+    .attr("x", 400)
+    .attr("y", 390)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "12px")
+    .text("Temperature (°F)");
+
+  // Y Axis Label
+  svg.append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("x", 2300)
+    .attr("y", 50)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "12px")
+    .text("Number of Accidents");
+
+  // Bars
   svg.selectAll("rect")
     .data(bins)
     .join("rect")
@@ -158,12 +230,39 @@ function sceneTemperature() {
     .attr("height", d => 350 - y(d.length))
     .attr("fill", "#28a745");
 
+  // Title
   svg.append("text")
     .attr("x", 400)
     .attr("y", 30)
     .attr("text-anchor", "middle")
     .style("font-size", "18px")
     .text("Accident Frequency by Temperature");
+
+  // Annotation
+  const peakBin = bins.reduce((a, b) => (a.length > b.length ? a : b));
+
+  const annotations = [
+    {
+      note: {
+        title: "Temperature Spike",
+        label: `Most accidents occurred around ${Math.round(peakBin.x0)}–${Math.round(peakBin.x1)}°F.`,
+        align: "middle",
+        padding: 10
+      },
+      x: x(peakBin.x0) + (x(peakBin.x1) - x(peakBin.x0)) / 2,
+      y: y(peakBin.length),
+      dx: 60,
+      dy: 0
+    }
+  ];
+
+  const makeAnnotations = d3.annotation()
+    .type(d3.annotationLabel)
+    .annotations(annotations);
+
+  svg.append("g")
+    .attr("class", "annotation-group")
+    .call(makeAnnotations);
 }
 
 function enableExplore() {
@@ -262,7 +361,7 @@ function drawStateExploration(state) {
 function getStateName(fips) {
   const stateNames = {
     "04": "Arizona", "06": "California", "35": "New Mexico",
-    "40": "Oklahoma", "48": "Texas", "49": "Utah", "32": "Nevada"
+    "40": "Oklahoma", "48": "Texas", "49": "Utah", "32": "Nevada", "08": "Colorado"
   };
   const padded = fips.toString().padStart(2, "0");
   return stateNames[padded] || "Other";
